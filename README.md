@@ -19,3 +19,8 @@ model
 seq
     - plug and play datasets, loaders
     - utilities
+
+
+TODO:
+ - augment data as a LambdaModule to plug into dataset, do this before dataloader to save GPU cycles
+ - handle different data sizes (x,) (x, target) at the task level
