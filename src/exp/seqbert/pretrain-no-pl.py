@@ -5,6 +5,8 @@ sys.path.append('./src')
 import os
 from argparse import ArgumentParser
 import torch
+import numpy as np
+import random
 from exp.seqbert.model import SeqBERT, SeqBERTLightningModule, Counter, \
                             CheckpointEveryNSteps, bool_to_tokens, main
 from exp.seqbert.pretrain import Pretrain
@@ -75,6 +77,7 @@ def train(module, args):
 if __name__ == '__main__':
     parser = ArgumentParser(add_help=False)
     parser.add_argument('--gpus', default=1, type=int)
+    parser.add_argument('--deterministic', default=False, type=bool)
     parser.add_argument('--lr', default=3e-4, type=float)
     parser.add_argument('--max_epochs', default=1000, type=int)
     parser.add_argument('--gradient_clip_val', default=0.5, type=float)
@@ -85,6 +88,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
     print('NO PYTORCH_LIGHTNING', vars(args))
 
+    if args.deterministic:
+        torch.manual_seed(0)
+        np.random.seed(0)
+        random.seed(0)
     module = Pretrain(**vars(args))
     try:
         if args.mode == 'train':

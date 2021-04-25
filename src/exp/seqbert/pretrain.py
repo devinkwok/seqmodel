@@ -282,7 +282,8 @@ class Pretrain(SeqBERTLightningModule):
     """
     def masked_forward(self, batch):
         source, target, mask = batch
-        predicted, latent, embedded = self.model.forward(source)
+        empty_positions = (source == TOKENS_BP_IDX['n'])
+        predicted, latent, embedded = self.model.forward(source, no_attention=empty_positions)
         masked_predict_loss = self.loss_fn(mask_select(predicted, mask != self.NO_LOSS_INDEX),
                                             mask_select(target, mask != self.NO_LOSS_INDEX))
         # apply classification loss separately

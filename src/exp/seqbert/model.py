@@ -48,12 +48,12 @@ class SeqBERT(nn.Module):
                         hidden_layers=hparams['n_decode_layers'] - 1, activation_fn=nn.ReLU)
         self.classify_only = classify_only  # whether to decode all positions or only first one
 
-    def forward(self, x):
+    def forward(self, x, no_attention=None):
         # input dims are (batch, seq), embedding adds channel dim to end
         # swap dimensions from (batch, seq, channel) to (seq, batch, channel)
         embedded = self.embedding(x).permute(1, 0, 2)
         # swap dimensions from (seq, batch, channel) to (batch, channels, seq_len)
-        latent = self.transformer_encoder(embedded).permute(1, 2, 0)
+        latent = self.transformer_encoder(embedded, src_key_padding_mask=no_attention).permute(1, 2, 0)
         if self.classify_only:
             latent = latent[:, :, 0:1]  # take index 0 of seq as target
         predicted = self.decoder(latent).squeeze(dim=2) # remove seq dim (dim=2)
