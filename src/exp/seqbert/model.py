@@ -287,7 +287,7 @@ def main(ModuleClass, PretrainClass):
         pl_module = ModuleClass(**vars(args))
     args.callbacks = [
         CheckpointEveryNSteps(args.save_checkpoint_freq),
-        ParamThreshold(args.kill_param_threshold, args.kill_grad_threshold, args.dump_file),
+        # ParamThreshold(args.kill_param_threshold, args.kill_grad_threshold, args.dump_file),
         ]
     if args.gpus > 0:
         args.callbacks.append(GPUStatsMonitor())

@@ -1,12 +1,12 @@
 #!/bin/bash
-#SBATCH --job-name=seqbert-pretrain-8x8
+#SBATCH --job-name=seqbert-pretrain-8x8-esm
 #SBATCH --account=def-quanlong          # needed for resource billing if using compute canada
 #SBATCH --time=24:00:00                 # max walltime in D-HH:MM or HH:MM:SS
 #SBATCH --cpus-per-task=4               # number of cores
 #SBATCH --gres=gpu:v100l:1              # type and number of GPU(s) per node
 #SBATCH --mem=16000                     # max memory (default unit is MB) per node
-#SBATCH --output=%j-pretrain-8x8.out  # file name for the output
-#SBATCH --error=%j-pretrain-8x8.err   # file name for errors
+#SBATCH --output=%j-pretrain-8x8-esm.out  # file name for the output
+#SBATCH --error=%j-pretrain-8x8-esm.err   # file name for errors
                                         # %j gets replaced by the job number
 
 ## project name
@@ -52,7 +52,7 @@ python ./src/exp/seqbert/pretrain-esm.py \
     --keep_prop=0.01 \
     --mask_prop=0.08 \
     --random_prop=0.01 \
-    --cls_regularization=0.01 \
+    --cls_regularization=0. \
     --seq_len_source_multiplier=2. \
     --crop_factor=0.2 \
     --seq_len_sample_freq=0.25 \

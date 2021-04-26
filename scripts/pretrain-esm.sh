@@ -1,6 +1,6 @@
 #!/bin/bash
 
-python src/exp/seqbert/pretrain.py \
+python src/exp/seqbert/pretrain-esm.py \
     --n_dims=256 \
     --n_heads=2 \
     --n_layers=2 \
@@ -11,9 +11,6 @@ python src/exp/seqbert/pretrain.py \
     --keep_prop=0.03 \
     --mask_prop=0.1 \
     --random_prop=0.02 \
-    --val_keep_prop=0.2 \
-    --val_mask_prop=0. \
-    --val_random_prop=0.1 \
     --cls_regularization=1. \
     --crop_factor=0.4 \
     --num_workers=4 \
@@ -33,7 +30,11 @@ python src/exp/seqbert/pretrain.py \
     --dump_file='' \
     --gradient_clip_val=0.5 \
     --gpus=0 \
-    --load_checkpoint_path=./outputs/lightning_logs/version_59124619/checkpoints/N-Step-Checkpoint_0_0.ckpt \
+
+    # --val_keep_prop=0.2 \
+    # --val_mask_prop=0. \
+    # --val_random_prop=0.1 \
+    # --load_checkpoint_path=./outputs/lightning_logs/version_59124619/checkpoints/N-Step-Checkpoint_0_0.ckpt \
     # --auto_lr_find=True \
     # --accumulate_grad_batches=8 \
     # --seq_file=data/ref_genome/test-2k.fa \

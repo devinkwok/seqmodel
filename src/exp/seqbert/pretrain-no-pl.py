@@ -89,9 +89,11 @@ if __name__ == '__main__':
     print('NO PYTORCH_LIGHTNING', vars(args))
 
     if args.deterministic:
-        torch.manual_seed(0)
-        np.random.seed(0)
-        random.seed(0)
+        seed = 0
+        print('Setting seed to', seed)
+        torch.manual_seed(seed)
+        np.random.seed(seed)
+        random.seed(seed)
     module = Pretrain(**vars(args))
     try:
         if args.mode == 'train':

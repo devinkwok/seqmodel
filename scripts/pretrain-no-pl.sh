@@ -32,6 +32,7 @@ python src/exp/seqbert/pretrain-no-pl.py \
     --dump_file='' \
     --gradient_clip_val=0.5 \
     --gpus=0 \
+    --deterministic=True \
     --load_checkpoint_path=./outputs/lightning_logs/version_59124619/checkpoints/N-Step-Checkpoint_0_0.ckpt \
     # --auto_lr_find=True \
     # --accumulate_grad_batches=8 \

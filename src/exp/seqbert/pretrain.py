@@ -177,10 +177,15 @@ class Pretrain(SeqBERTLightningModule):
         # get sequence of length seq_len_source_multiplier*seq_len from dataloader
         self.sample_freq = int(self.hparams.seq_len * self.hparams.seq_len_sample_freq)
         self.load_seq_len = int(self.hparams.seq_len_source_multiplier * self.hparams.seq_len)
-        min_crop = int(self.hparams.seq_len * self.hparams.crop_factor)
-        max_crop = self.hparams.seq_len - min_crop
-        offset_min = 1 + min_crop
-        offset_max = self.hparams.seq_len - min_crop
+        min_crop = self.hparams.seq_len
+        # if self.hparams.do_crop:
+        #     min_crop = int(self.hparams.seq_len * self.hparams.crop_factor)
+        max_crop = self.hparams.seq_len + 1
+        offset_min = self.hparams.seq_len // 2
+        offset_max = self.hparams.seq_len // 2 + 1
+        # if self.hparams.do_shift:
+        #     offset_min = int(offset_min * self.hparams.shift_factor)
+        #     offset_max = self.hparams.seq_len - offset_min + 1
 
         self.train_batch_processor = PretrainBatchProcessor(self.hparams.seq_len,
                 min_crop, max_crop, offset_min, offset_max,
