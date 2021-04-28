@@ -8,13 +8,16 @@ from esm.model import ProteinBertModel
 from exp.seqbert.model import main
 
 
+class ArgsObject(object):
+    def __init__(self, args):
+        self.__dict__ = args
+
 class ESMBertWrapper(ProteinBertModel):
 
     tokens = TOKENS_BP
 
     def forward(self, tokens, no_attention):
         # ignore no_attention, as ESM already takes that into account
-        print(len(self.layers))
         n_layers = len(self.layers)
         result = super().forward(tokens, repr_layers=[0,n_layers], need_head_weights=False, return_contacts=False)
         predicted = result['logits'].transpose(1, 2)
@@ -55,10 +58,7 @@ class PretrainESM(Pretrain):
         args['attention_dropout'] = hparams['dropout']
         args['activation_dropout'] = hparams['dropout']
         args['max_tokens'] = hparams['seq_len']
-        class args_object(object):
-            def __init__(self):
-                self.__dict__ = args
-        self.model = ESMBertWrapper(args_object(), self.DNAalphabet())
+        self.model = ESMBertWrapper(ArgsObject(args), self.DNAalphabet())
         print('ESM model', self.model.model_version)
 
 

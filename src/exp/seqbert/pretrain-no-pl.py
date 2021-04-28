@@ -10,6 +10,7 @@ import random
 from exp.seqbert.model import SeqBERT, SeqBERTLightningModule, Counter, \
                             CheckpointEveryNSteps, bool_to_tokens, main
 from exp.seqbert.pretrain import Pretrain
+from exp.seqbert.pretrain_esm import PretrainESM
 
 
 def move_to_device(x, args):
@@ -62,7 +63,7 @@ def train(module, args):
             loss.backward()
             torch.nn.utils.clip_grad_value_(module.parameters(), args.gradient_clip_val)
             optimizer.step()
-            print('{}it, loss={}'.format(i, loss))
+            print('{}it, loss={:.2f}'.format(i, loss))
 
             if (i % args.save_checkpoint_freq) == 0:
                 outfile = os.path.join(ckpt_path, 'N-Step-Checkpoint_{}_{}.ckpt'.format(epoch, i))
@@ -75,6 +76,8 @@ def train(module, args):
 
 
 if __name__ == '__main__':
+    ModelType = Pretrain
+    ModelType = PretrainESM
     parser = ArgumentParser(add_help=False)
     parser.add_argument('--gpus', default=1, type=int)
     parser.add_argument('--deterministic', default=False, type=bool)
@@ -84,7 +87,7 @@ if __name__ == '__main__':
     parser.add_argument('--val_check_interval', default=0, type=int)
     parser.add_argument('--limit_val_batches', default=0, type=int)
     parser.add_argument('--default_root_dir', default='.', type=str)
-    parser = Pretrain.add_model_specific_args(parser)
+    parser = ModelType.add_model_specific_args(parser)
     args = parser.parse_args()
     print('NO PYTORCH_LIGHTNING', vars(args))
 
@@ -94,7 +97,7 @@ if __name__ == '__main__':
         torch.manual_seed(seed)
         np.random.seed(seed)
         random.seed(seed)
-    module = Pretrain(**vars(args))
+    module = ModelType(**vars(args))
     try:
         if args.mode == 'train':
             train(module, args)

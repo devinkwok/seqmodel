@@ -38,7 +38,7 @@ pip install pyfaidx pytorch-lightning==1.1.6
 tar xzvf $DATA_DIR/*.tar.gz -C $RUN_DIR
 
 # hparams
-python ./src/exp/seqbert/pretrain-esm.py \
+python ./src/exp/seqbert/pretrain_esm.py \
     --n_dims=512 \
     --n_heads=8 \
     --n_layers=8 \

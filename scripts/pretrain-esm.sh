@@ -1,6 +1,6 @@
 #!/bin/bash
 
-python src/exp/seqbert/pretrain-esm.py \
+python src/exp/seqbert/pretrain_esm.py \
     --n_dims=256 \
     --n_heads=2 \
     --n_layers=2 \
