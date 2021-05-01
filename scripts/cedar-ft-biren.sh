@@ -63,6 +63,7 @@ python ./src/exp/seqbert/finetune_biren.py \
     --crop_factor=0.3 \
     --seq_len_sample_freq=0.25 \
     --train_randomize_prop=0. \
+    --sum_representation=True \
     --load_pretrained_model=../lightning_logs/version_58642373/checkpoints/N-Step-Checkpoint_0_170000.ckpt \
 
     # --train_intervals=$DATA_DIR/by-chr-train.bed \

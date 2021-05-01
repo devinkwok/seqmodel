@@ -19,6 +19,7 @@ python src/exp/seqbert/finetune_deepsea.py \
     --gpus=0 \
     --limit_test_batches=10 \
     --single_target=1 \
+    --sum_representation=True \
 
     # --load_pretrained_model=./outputs/lightning_logs/version_59124619/checkpoints/N-Step-Checkpoint_0_0.ckpt \
     # --valid_mat='data/deepsea/valid.mat' \

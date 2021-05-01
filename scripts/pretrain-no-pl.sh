@@ -33,8 +33,8 @@ python src/exp/seqbert/pretrain-no-pl.py \
     --gradient_clip_val=0.5 \
     --gpus=0 \
     --deterministic=True \
-    --load_checkpoint_path=./outputs/checkpoints/N-Step-Checkpoint_0_300.ckpt \
     --accumulate_grad_batches=4 \
+    # --load_checkpoint_path=./outputs/checkpoints/N-Step-Checkpoint_0_300.ckpt \
     # --auto_lr_find=True \
     # --seq_file=data/ref_genome/test-2k.fa \
     # --DEBUG_use_random_data=False \

@@ -133,6 +133,7 @@ class FineTuneDeepSEA(SeqBERTLightningModule):
         parser.add_argument('--valid_mat', default='data/deepsea/valid.mat', type=str)
         parser.add_argument('--test_mat', default='data/deepsea/test.mat', type=str)
         parser.add_argument('--single_target', default=None, type=int)
+        parser.add_argument('--sum_representation', default=False, type=bool)
         return parser
 
 

@@ -22,7 +22,7 @@ def bool_to_tokens(bool_tensor, target_tensor_type=torch.long):
 
 class SeqBERT(nn.Module):
 
-    def __init__(self, classify_only=False, n_class=None, **hparams):
+    def __init__(self, classify_only=False, sum_representation=False, n_class=None, **hparams):
         super().__init__()
         self.tokens = TOKENS_BP  # may have different tokenizations in the future
         embedding = nn.Embedding(len(self.tokens), hparams['n_dims'])
@@ -47,6 +47,9 @@ class SeqBERT(nn.Module):
         self.decoder = SeqFeedForward(hparams['n_dims'], self.n_class,
                         hidden_layers=hparams['n_decode_layers'] - 1, activation_fn=nn.ReLU)
         self.classify_only = classify_only  # whether to decode all positions or only first one
+        # whether to add latent vectors at all positions together (True)
+        # or use the first position (False) as classification vector
+        self.sum_representation = sum_representation
 
     def forward(self, x, no_attention=None):
         # input dims are (batch, seq), embedding adds channel dim to end
@@ -55,8 +58,11 @@ class SeqBERT(nn.Module):
         # swap dimensions from (seq, batch, channel) to (batch, channels, seq_len)
         latent = self.transformer_encoder(embedded, src_key_padding_mask=no_attention).permute(1, 2, 0)
         if self.classify_only:
+            if self.sum_representation:
+                latent = torch.sum(latent[:, :, 1:], dim=2).unsqueeze(dim=2)
+                # TODO divide this by seq len
             latent = latent[:, :, 0:1]  # take index 0 of seq as target
-        predicted = self.decoder(latent).squeeze(dim=2) # remove seq dim (dim=2)
+        predicted = self.decoder(latent).squeeze(dim=2) # remove seq dim if empty
         return predicted, latent, embedded
 
 

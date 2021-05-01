@@ -58,12 +58,12 @@ python ./src/exp/seqbert/finetune_deepsea.py \
     --train_mat=$RUN_DIR/data/deepsea/train.mat \
     --valid_mat=$RUN_DIR/data/deepsea/valid.mat \
     --test_mat=$RUN_DIR/data/deepsea/test.mat \
+    --sum_representation=True \
+   --load_pretrained_model=../lightning_logs/version_55349874/checkpoints/fixed-N-Step-Checkpoint_0_260000.ckpt \
 
     # --load_checkpoint_path=../lightning_logs/version_56082675/checkpoints/N-Step-Checkpoint_0_70000.ckpt \
     # --mode='test' \
     # --limit_test_batches=1000 \
-
-#    --load_pretrained_model=../lightning_logs/version_55349874/checkpoints/fixed-N-Step-Checkpoint_0_260000.ckpt \
     # --accumulate_grad_batches=1 \
 
 ## clean up by stopping virtualenv

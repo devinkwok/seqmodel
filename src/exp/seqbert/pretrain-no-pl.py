@@ -86,8 +86,6 @@ def train(module, args):
 
 
 if __name__ == '__main__':
-    ModelType = Pretrain
-    ModelType = PretrainESM
     parser = ArgumentParser(add_help=False)
     parser.add_argument('--gpus', default=1, type=int)
     parser.add_argument('--deterministic', default=False, type=bool)
@@ -98,9 +96,14 @@ if __name__ == '__main__':
     parser.add_argument('--limit_val_batches', default=0, type=int)
     parser.add_argument('--default_root_dir', default='.', type=str)
     parser.add_argument('--accumulate_grad_batches', default=1, type=int)
-    parser = ModelType.add_model_specific_args(parser)
+    parser.add_argument('--use_esm', default=False, type=bool)
+    parser = Pretrain.add_model_specific_args(parser)
     args = parser.parse_args()
     print('NO PYTORCH_LIGHTNING', vars(args))
+
+    ModelType = Pretrain
+    if args.use_esm:
+        ModelType = PretrainESM
 
     if args.deterministic:
         seed = 0
@@ -110,7 +113,7 @@ if __name__ == '__main__':
         random.seed(seed)
 
     module = ModelType(**vars(args))
-    if hasattr(args, 'load_checkpoint_path'):
+    if args.load_checkpoint_path is not None:
         module = torch.load(args.load_checkpoint_path)
 
     try:
