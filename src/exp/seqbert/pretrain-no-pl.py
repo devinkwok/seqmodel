@@ -3,6 +3,7 @@
 import sys
 sys.path.append('./src')
 import os
+import time
 from argparse import ArgumentParser
 import torch
 import numpy as np
@@ -45,8 +46,11 @@ def train(module, args):
     optimizer = module.configure_optimizers()
     train_dl = module.train_dataloader()
     val_dl = module.val_dataloader()
+
+    device = 'cpu'
     if args.gpus > 0:
-        module.to('cuda')
+        device = 'cuda'
+    module.to(device)
 
     ckpt_path = os.path.join(args.default_root_dir, 'checkpoints')
     if not os.path.exists(ckpt_path):
@@ -54,16 +58,22 @@ def train(module, args):
 
     module.train()
     validate(module, val_dl, args, n_batch=1)  # sanity check
+    start_time = time.time()
 
+    total_loss = 0.
     for epoch in range(args.max_epochs):
         for i, x in enumerate(train_dl):
             x = move_to_device(x, args)
-            loss = module.training_step(x, i)
-            optimizer.zero_grad()
+            loss = module.training_step(x, i) / args.accumulate_grad_batches
             loss.backward()
-            torch.nn.utils.clip_grad_value_(module.parameters(), args.gradient_clip_val)
-            optimizer.step()
-            print('{}it, loss={:.2f}'.format(i, loss))
+            total_loss += loss.item()
+            if i % args.accumulate_grad_batches == 0:
+                torch.nn.utils.clip_grad_value_(module.parameters(), args.gradient_clip_val)
+                optimizer.step()
+                optimizer.zero_grad()
+                elapsed_time = time.time() - start_time
+                print('Epoch {} {}it, t={:.2f}, loss={:.2f}'.format(epoch, i, elapsed_time, total_loss))
+                total_loss = 0.
 
             if (i % args.save_checkpoint_freq) == 0:
                 outfile = os.path.join(ckpt_path, 'N-Step-Checkpoint_{}_{}.ckpt'.format(epoch, i))
@@ -87,6 +97,7 @@ if __name__ == '__main__':
     parser.add_argument('--val_check_interval', default=0, type=int)
     parser.add_argument('--limit_val_batches', default=0, type=int)
     parser.add_argument('--default_root_dir', default='.', type=str)
+    parser.add_argument('--accumulate_grad_batches', default=1, type=int)
     parser = ModelType.add_model_specific_args(parser)
     args = parser.parse_args()
     print('NO PYTORCH_LIGHTNING', vars(args))

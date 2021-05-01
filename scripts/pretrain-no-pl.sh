@@ -34,8 +34,8 @@ python src/exp/seqbert/pretrain-no-pl.py \
     --gpus=0 \
     --deterministic=True \
     --load_checkpoint_path=./outputs/lightning_logs/version_59124619/checkpoints/N-Step-Checkpoint_0_0.ckpt \
+    --accumulate_grad_batches=4 \
     # --auto_lr_find=True \
-    # --accumulate_grad_batches=8 \
     # --seq_file=data/ref_genome/test-2k.fa \
     # --DEBUG_use_random_data=False \
     # --DEBUG_random_repeat_len=2 \
