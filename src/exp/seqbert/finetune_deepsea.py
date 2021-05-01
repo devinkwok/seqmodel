@@ -32,8 +32,8 @@ class MatFileDataset(IterableDataset):
                 target = torch.tensor(target, dtype=torch.float)
                 if self.target_indexes is not None:
                     target = target[:,self.target_indexes]
-                    if torch.sum(target) != 0:  # no positives
-                        break
+                if torch.sum(target) != 0:  # no positives
+                    break
             # swap dimensions from (batch, seq, channel) to the usual (batch, channel, seq)
             seq = torch.tensor(seq, dtype=torch.long).permute(0, 2, 1)
             seq = one_hot_to_index(seq)  # embedding works on indices
