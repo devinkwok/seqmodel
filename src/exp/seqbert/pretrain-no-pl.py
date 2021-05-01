@@ -108,7 +108,11 @@ if __name__ == '__main__':
         torch.manual_seed(seed)
         np.random.seed(seed)
         random.seed(seed)
+
     module = ModelType(**vars(args))
+    if hasattr(args, 'load_checkpoint_path'):
+        module = torch.load(args.load_checkpoint_path)
+
     try:
         if args.mode == 'train':
             train(module, args)
