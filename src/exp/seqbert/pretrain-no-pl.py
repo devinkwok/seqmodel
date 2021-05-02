@@ -114,7 +114,8 @@ if __name__ == '__main__':
 
     module = ModelType(**vars(args))
     if args.load_checkpoint_path is not None:
-        module = torch.load(args.load_checkpoint_path)
+        checkpoint = torch.load(args.load_checkpoint_path)
+        module.load_state_dict(checkpoint.state_dict())
 
     try:
         if args.mode == 'train':
