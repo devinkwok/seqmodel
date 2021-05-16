@@ -12,6 +12,7 @@ class ArgsObject(object):
     def __init__(self, args):
         self.__dict__ = args
 
+
 class ESMBertWrapper(ProteinBertModel):
 
     tokens = TOKENS_BP
@@ -24,6 +25,12 @@ class ESMBertWrapper(ProteinBertModel):
         latent = result['representations'][n_layers].transpose(1, 2)
         embedded = result['representations'][0].transpose(1, 2)
         return predicted, latent, embedded
+
+    def forward_with_intermediate_outputs(self, tokens):
+        result = super().forward(tokens, repr_layers=[x for x in range(len(self.layers) + 1)],
+                                need_head_weights=True, return_contacts=False)
+        return result
+
 
 class PretrainESM(Pretrain):
 
