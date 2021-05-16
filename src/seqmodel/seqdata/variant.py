@@ -102,7 +102,9 @@ def gen_variants(mutation_model, sequence, key, coord,
     ref = sequence[indexes]
     # subtract cumulative from sequence because of uniform < row comparison
     alt = torch.remainder(ref - cumulative[indexes], N_BASE)
-    print('asdf', chrom, indexes, ref, alt)
+    indexes, idx = torch.sort(indexes)
+    ref = ref[idx]
+    alt = alt[idx]
     if as_pyvcf_format:
         record = [PyVCFRecord(c, p.item(), r.item(), a.item()) for c, p, r, a in zip(chrom, pos, ref, alt)]
         return record
@@ -126,12 +128,21 @@ class PyVCFRecord():
             self.sequence = alt
 
 
-"""
-    sequence: tensor of indexed bases
-    variants: table containg chrom (str), pos (int), ref (str), alt ([str]) from VCF
-"""
-  #FIXME either sort variants prior to apply, or make apply insensitive to order
 def apply_variants(sequence, key, coord, variants):
+    """Requires variants to be sorted by coordinate in ascending order.
+
+    Args:
+        sequence ([type]): tensor of indexed bases
+        key ([type]): [description]
+        coord ([type]): [description]
+        variants ([type]): table containg chrom (str), pos (int), ref (str), alt ([str]) from VCF
+
+    Raises:
+        ValueError: [description]
+
+    Returns:
+        [type]: [description]
+    """
     last_index = 0
     subseqs = []
     for row in variants:

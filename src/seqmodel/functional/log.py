@@ -224,10 +224,11 @@ def get_stats(tensor):
     return torch.min(tensor).item(), mean.item(), std.item(), torch.max(tensor).item()
 
 def tensor_stats_str(*tensors, include_grad=False):
-    if include_grad:
-        strings = ['<{:0.2f} [{:0.2f}/{:0.2f}] {:0.2f}> ({:0.2f} {{{:0.2f}/{:0.2f}}} {:0.2f})'.format(
-                *get_stats(t), *get_stats(t.grad)) for t in tensors]
-    else:
-        strings = ['<{:0.2f} [{:0.2f}/{:0.2f}] {:0.2f}>'.format(
-                *get_stats(t)) for t in tensors]
+    strings = []
+    for t in tensors:
+        if include_grad and t.grad is not None:
+            strings.append('<{:0.4f} [{:0.4f}/{:0.4f}] {:0.4f}> ({:0.4f} {{{:0.4f}/{:0.4f}}} {:0.4f})'.format(
+                    *get_stats(t), *get_stats(t.grad)))
+        else:
+            strings.append('<{:0.4f} [{:0.4f}/{:0.4f}] {:0.4f}>'.format(*get_stats(t)))
     return ' || '.join(strings)

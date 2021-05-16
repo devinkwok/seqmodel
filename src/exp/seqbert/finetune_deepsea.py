@@ -101,11 +101,14 @@ class FineTuneDeepSEA(SeqBERTLightningModule):
         return loss
 
     def validation_epoch_end(self, val_step_outputs):
-        self.log('val_acc', self.val_acc.compute())
-        precision, recall, _ = self.val_pr_curve.compute()
-        self.log('val_pr', self.auc_fn(recall, precision), prog_bar=True)
-        fpr, tpr, _ = self.val_roc_curve.compute()
-        self.log('val_roc', self.auc_fn(fpr, tpr), prog_bar=True)
+        try:
+            self.log('val_acc', self.val_acc.compute())
+            precision, recall, _ = self.val_pr_curve.compute()
+            self.log('val_pr', self.auc_fn(recall, precision), prog_bar=True)
+            fpr, tpr, _ = self.val_roc_curve.compute()
+            self.log('val_roc', self.auc_fn(fpr, tpr), prog_bar=True)
+        except ValueError as e:
+            print(e)
     
     def test_step(self, batch, batch_idx):
         x, target = batch

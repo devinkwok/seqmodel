@@ -152,6 +152,13 @@ class PretrainBatchProcessor():
         target[:, 0] = cls_targets
         # mask for masked token prediction task
         source, mask = self.mask_transform(target)
+        # hack to rebuild tensors, may avoid CUDA memory error?
+        source = list(source.detach().numpy())
+        target = list(target.detach().numpy())
+        mask = list(mask.detach().numpy())
+        source = torch.tensor(source, dtype=torch.long)
+        target = torch.tensor(target, dtype=torch.long)
+        mask = torch.tensor(mask, dtype=torch.long)
         return (source, target, mask), (key, torch.tensor(coord))  # send this to GPU
 
 

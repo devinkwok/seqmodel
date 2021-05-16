@@ -8,6 +8,8 @@ from argparse import ArgumentParser
 import torch
 import numpy as np
 import random
+
+from seqmodel.functional.log import summarize_weights_and_grads
 from exp.seqbert.model import SeqBERT, SeqBERTLightningModule, Counter, \
                             CheckpointEveryNSteps, bool_to_tokens, main
 from exp.seqbert.pretrain import Pretrain
@@ -19,9 +21,20 @@ def move_to_device(x, args):
     if args.gpus > 0:
         device = 'cuda'
     (source, target, mask), (key, coord) = x
-    source = source.to(device)
-    target = target.to(device)
-    mask = mask.to(device)
+    source = list(source.detach().numpy())
+    target = list(target.detach().numpy())
+    mask = list(mask.detach().numpy())
+    source = torch.tensor(source, dtype=torch.long, device=device)
+    target = torch.tensor(target, dtype=torch.long, device=device)
+    mask = torch.tensor(mask, dtype=torch.long, device=device)
+    print('{:.4f}|{:.4f}, {:.4f}|{:.4f}, {:.4f}|{:.4f}'.format(
+        torch.min(source).item(), torch.max(source).item(),
+        torch.min(target).item(), torch.max(target).item(),
+        torch.min(mask).item(), torch.max(mask).item(),
+        ))
+    # source = source.to(device)
+    # target = target.to(device)
+    # mask = mask.to(device)
     key = key
     coord = coord.to(device)
     return (source, target, mask), (key, coord)
@@ -65,10 +78,13 @@ def train(module, args):
         for i, x in enumerate(train_dl):
             x = move_to_device(x, args)
             loss = module.training_step(x, i) / args.accumulate_grad_batches
+            if torch.any(torch.isnan(loss)):
+                raise ValueError('NaN loss on epoch {} {}it'.format(epoch, i))
             loss.backward()
             total_loss += loss.item()
             if i % args.accumulate_grad_batches == 0:
                 torch.nn.utils.clip_grad_value_(module.parameters(), args.gradient_clip_val)
+                print(summarize_weights_and_grads(module, include_grad=True))
                 optimizer.step()
                 optimizer.zero_grad()
                 elapsed_time = time.time() - start_time
@@ -99,7 +115,9 @@ if __name__ == '__main__':
     parser.add_argument('--use_esm', default=False, type=bool)
     parser = Pretrain.add_model_specific_args(parser)
     args = parser.parse_args()
-    print('NO PYTORCH_LIGHTNING', vars(args))
+    arg_dict = vars(args)
+    print('NO PYTORCH_LIGHTNING')
+    [print(k, v) for k, v in arg_dict.items()]
 
     ModelType = Pretrain
     if args.use_esm:
@@ -112,7 +130,7 @@ if __name__ == '__main__':
         np.random.seed(seed)
         random.seed(seed)
 
-    module = ModelType(**vars(args))
+    module = ModelType(**arg_dict)
     if args.load_checkpoint_path is not None:
         checkpoint = torch.load(args.load_checkpoint_path)
         module.load_state_dict(checkpoint.state_dict())

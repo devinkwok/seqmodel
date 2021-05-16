@@ -14,6 +14,7 @@ from seqmodel.functional.log import summarize_weights_and_grads
 from seqmodel.model.conv import SeqFeedForward
 from seqmodel.model.attention import SinusoidalPosition
 from exp.seqbert import TOKENS_BP
+from exp.seqbert import hparam
 
 
 def bool_to_tokens(bool_tensor, target_tensor_type=torch.long):
@@ -65,6 +66,27 @@ class SeqBERT(nn.Module):
         predicted = self.decoder(latent).squeeze(dim=2) # remove seq dim if empty
         return predicted, latent, embedded
 
+    def forward_with_intermediate_outputs(self, x):
+        # replicate SeqBERT forward
+        embedded = self.embedding(x).permute(1, 0, 2)
+        # replicate TransformerEncoder forward, but include all hidden layers
+        src = embedded
+        representations = {0: embedded}
+        attentions = []
+        for i, mod in enumerate(self.transformer_encoder.layers):
+            # replicate TransformerEncoderLayer forward, but include attn_weights
+            src2, attn_weights = mod.self_attn(src, src, src)
+            src = src + mod.dropout1(src2)
+            src = mod.norm1(src)
+            src2 = mod.linear2(mod.dropout(mod.activation(mod.linear1(src))))
+            src = src + mod.dropout2(src2)
+            src = mod.norm2(src)
+            # swap dimensions from (seq, batch, channel) to (batch, channels, seq_len)
+            representations[i] = src.permute(1, 2, 0)
+            attentions.append(attn_weights.unsqueeze(1))
+        attentions = torch.stack(attentions, dim=1)
+        return {'representations': representations, 'attentions': attentions}
+
 
 class VariantDecoder(SeqBERT):
 
@@ -99,7 +121,9 @@ class SeqBERTLightningModule(LightningModule):
         self.prev_loss = 10000.
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.model.parameters(), lr=self.hparams.learning_rate)
+        return torch.optim.Adam(self.model.parameters(), lr=self.hparams.learning_rate,
+                betas=(self.hparams.adam_beta_1, self.hparams.adam_beta_2),
+                eps=self.hparams.adam_eps, weight_decay=self.hparams.weight_decay)
 
     def load_pretrained_encoder(self, source_module):
         self.model.embedding = source_module.model.embedding
@@ -128,10 +152,15 @@ class SeqBERTLightningModule(LightningModule):
         parser.add_argument('--dropout', default=0.1, type=float)
         parser.add_argument('--position_embedding', default='Sinusoidal', type=str)
         # training params
+        parser.add_argument('--hparam_search_idx', required=False, type=int)
         parser.add_argument('--seq_len', default=1000, type=int)
         parser.add_argument('--num_workers', default=0, type=int)
         parser.add_argument('--batch_size', default=64, type=int)
         parser.add_argument('--learning_rate', default=1e-3, type=float)
+        parser.add_argument('--adam_beta_1', default=0.9, type=float)
+        parser.add_argument('--adam_beta_2', default=0.99, type=float)
+        parser.add_argument('--adam_eps', default=1e-6, type=float)
+        parser.add_argument('--weight_decay', default=0.01, type=float)
         # log params
         parser.add_argument('--print_progress_freq', default=1000, type=int)
         parser.add_argument('--save_checkpoint_freq', default=1000, type=int)
@@ -282,15 +311,26 @@ def main(ModuleClass, PretrainClass):
 
     seed_everything(0)
     # defaults
-    print(vars(args))
-    if args.load_checkpoint_path is not None:
-        pl_module = ModuleClass.load_from_checkpoint(args.load_checkpoint_path, **vars(args))
-    elif args.load_pretrained_model is not None:
-        pl_module = ModuleClass(**vars(args))
-        pretrained = PretrainClass.load_from_checkpoint(args.load_pretrained_model)
+    arg_dict = vars(args)
+    # use slurm array id to control hparams
+    if 'hparam_search_idx' in arg_dict:
+        # retrieve dict containing hparams
+        hparams_dict = hparam.search_hparams
+        # use job array index to set appropriate hparams
+        for k, v in hparams_dict.items():
+            print('asdf', k, v[args.hparam_search_idx])
+            arg_dict[k] = v[args.hparam_search_idx]
+    [print(k, v) for k, v in arg_dict.items()]
+
+    # load model
+    if arg_dict['load_checkpoint_path'] is not None:
+        pl_module = ModuleClass.load_from_checkpoint(arg_dict['load_checkpoint_path'], **arg_dict)
+    elif arg_dict['load_pretrained_model'] is not None:
+        pl_module = ModuleClass(**arg_dict)
+        pretrained = PretrainClass.load_from_checkpoint(arg_dict['load_pretrained_model'])
         pl_module.load_pretrained_encoder(pretrained)
     else:
-        pl_module = ModuleClass(**vars(args))
+        pl_module = ModuleClass(**arg_dict)
     args.callbacks = [
         CheckpointEveryNSteps(args.save_checkpoint_freq),
         # ParamThreshold(args.kill_param_threshold, args.kill_grad_threshold, args.dump_file),
@@ -305,6 +345,8 @@ def main(ModuleClass, PretrainClass):
     if batch_size % 2 == 1:
         print('Making batch size {} divisible by 2'.format(batch_size))
         lightning_setattr(pl_module, 'batch_size', batch_size - 1)
+
+    # run model
     try:
         if args.mode == 'train':
             trainer.fit(pl_module)
