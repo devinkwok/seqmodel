@@ -22,6 +22,7 @@ python src/exp/seqbert/pretrain.py \
     --seq_len=100 \
     --seq_file=data/ref_genome/model_org/chrI.fna \
     --gpus=0 \
+    --default_root_dir='asdftest' \
 
     # --seq_file=data/ref_genome/p12/assembled_chr/GRCh38_p12_assembled_chr.fa \
     # --train_intervals=data/ref_genome/grch38-train.bed \

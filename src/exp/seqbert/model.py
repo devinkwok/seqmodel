@@ -170,7 +170,6 @@ class SeqBERTLightningModule(LightningModule):
         parser.add_argument('--test_out_file', default='./test-scores.pt', type=str)
         parser.add_argument('--kill_param_threshold', default=10000., type=float)
         parser.add_argument('--kill_grad_threshold', default=10000., type=float)
-        parser.add_argument('--dump_file', default='./outputs/model-dump.pt', type=str)
         return parser
 
 
@@ -354,7 +353,7 @@ def main(ModuleClass, PretrainClass):
         elif args.mode == 'test':
             trainer.test(pl_module)
     except:
-        if args.dump_file != '':
-            print('Unexpected error, dumping model state to {}'.format(args.dump_file))
-            torch.save(pl_module.model, args.dump_file)
+        dump_file = os.path.join(args.default_root_dir, 'model_dump.pth')
+        print('Unexpected error, dumping model state to {}'.format(dump_file))
+        torch.save(pl_module.model, dump_file)
         raise
