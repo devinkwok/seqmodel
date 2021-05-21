@@ -100,16 +100,17 @@ class FineTuneBiRen(SeqBERTLightningModule):
         x, (is_positive, is_human, seqname, coord) = batch
         target = is_positive.float()
         predicted, latent, embedded = self.model.forward(x)
+        predicted = predicted.squeeze(1)
         loss = self.loss_fn(predicted, target)
         self.log('tr_acc', self.train_acc(predicted, target), prog_bar=True)
         self.log('tr_roc', self.train_roc_auc(predicted, target), prog_bar=True)
-        self.log('tr_roc_old',roc_auc(torch.sigmoid(predicted.squeeze()), target), prog_bar=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
         x, (is_positive, is_human, seqname, coord) = batch
-        target = is_positive.to(torch.float)
+        target = is_positive.float()
         predicted, latent, embedded = self.model.forward(x)
+        predicted = predicted.squeeze(1)
         loss = self.loss_fn(predicted, target)
         self.val_pr_curve(predicted, target)
         self.val_roc_curve(predicted, target)
@@ -121,11 +122,12 @@ class FineTuneBiRen(SeqBERTLightningModule):
         self.log('val_pr', self.auc_fn(recall, precision), prog_bar=True)
         fpr, tpr, _ = self.val_roc_curve.compute()
         self.log('val_roc', self.auc_fn(fpr, tpr), prog_bar=True)
-    
+
     def test_step(self, batch, batch_idx):
         x, (is_positive, is_human, seqname, coord) = batch
         target = is_positive.to(torch.float)
         predicted, latent, embedded = self.model.forward(x)
+        predicted = predicted.squeeze(1)
         loss = self.loss_fn(predicted, target)
         self.test_results(predicted, target)
         try:

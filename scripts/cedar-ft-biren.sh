@@ -39,8 +39,8 @@ tar xzvf $DATA_DIR/*.tar.gz -C $RUN_DIR
 
 # hparams
 python ./src/exp/seqbert/finetune_biren.py \
-    --mode='test' \
-    --max_epochs=30 \
+    --mode='train' \
+    --max_epochs=10 \
     --n_dims=512 \
     --n_heads=4 \
     --n_layers=4 \

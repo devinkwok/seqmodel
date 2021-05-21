@@ -5,9 +5,9 @@
 #SBATCH --cpus-per-task=4               # number of cores
 #SBATCH --gres=gpu:v100l:1              # type and number of GPU(s) per node
 #SBATCH --mem=8000                      # max memory (default unit is MB) per node
-#SBATCH --output=%A_%a-ft-8x8.out      # file name for the output
+#SBATCH --output=%A_%a-ft-8x8.out       # file name for the output
 #SBATCH --error=%A_%a-ft-8x8.err        # file name for errors
-                                        # %j gets replaced by the job number
+#SBATCH --array=1-2                     # number and index of job arrays (from 1)
 
 echo $SLURM_ARRAY_TASK_ID
 

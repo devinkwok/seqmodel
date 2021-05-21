@@ -194,7 +194,6 @@ class PretrainCADD(SeqBERTLightningModule):
         parser.add_argument('--DEBUG_use_random_data', default=False, type=bool)
         parser.add_argument('--DEBUG_random_repeat_len', default=1, type=int)
         parser.add_argument('--DEBUG_random_n_repeats', default=500, type=int)
-        parser.add_argument('--sum_representation', default=False, type=bool)
         return parser
 
 

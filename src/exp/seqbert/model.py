@@ -151,6 +151,7 @@ class SeqBERTLightningModule(LightningModule):
         parser.add_argument('--feedforward_dims', default=512, type=int)
         parser.add_argument('--dropout', default=0.1, type=float)
         parser.add_argument('--position_embedding', default='Sinusoidal', type=str)
+        parser.add_argument('--sum_representation', default=False, type=bool)
         # training params
         parser.add_argument('--hparam_search_idx', required=False, type=int)
         parser.add_argument('--seq_len', default=1000, type=int)
@@ -169,7 +170,7 @@ class SeqBERTLightningModule(LightningModule):
         parser.add_argument('--test_out_file', default='./test-scores.pt', type=str)
         parser.add_argument('--kill_param_threshold', default=10000., type=float)
         parser.add_argument('--kill_grad_threshold', default=10000., type=float)
-        parser.add_argument('--dump_file', default='./model-dump.pt', type=str)
+        parser.add_argument('--dump_file', default='./outputs/model-dump.pt', type=str)
         return parser
 
 
@@ -313,12 +314,12 @@ def main(ModuleClass, PretrainClass):
     # defaults
     arg_dict = vars(args)
     # use slurm array id to control hparams
-    if 'hparam_search_idx' in arg_dict:
+    if arg_dict['hparam_search_idx'] is not None:
         # retrieve dict containing hparams
         hparams_dict = hparam.search_hparams
         # use job array index to set appropriate hparams
         for k, v in hparams_dict.items():
-            print('asdf', k, v[args.hparam_search_idx])
+            print('Setting {} to {}'.format(k, v[args.hparam_search_idx]))
             arg_dict[k] = v[args.hparam_search_idx]
     [print(k, v) for k, v in arg_dict.items()]
 

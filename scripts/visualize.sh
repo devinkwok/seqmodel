@@ -67,7 +67,7 @@ python src/exp/seqbert/visualize_repr.py \
     --dump_file='' \
     --gradient_clip_val=0.5 \
     --gpus=0 \
-    --load_checkpoint_path=/home/devin/checkpoints/ft8x8deepsea \
+    --load_checkpoint_path=/home/devin/checkpoints/ft8x8deepsealr1e-6 \
     --use_pl=True \
     --n_class=919 \
 

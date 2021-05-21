@@ -17,3 +17,4 @@ python src/exp/seqbert/finetune_biren.py \
     --print_progress_freq=100 \
     --save_checkpoint_freq=1000 \
     --gpus=0 \
+    --sum_representation=True \
